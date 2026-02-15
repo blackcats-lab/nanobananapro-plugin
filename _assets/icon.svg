@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="12" fill="#FFE135"/>
+  <ellipse cx="32" cy="30" rx="14" ry="18" fill="#FFD700" stroke="#8B6914" stroke-width="2"/>
+  <path d="M28 12 C28 8, 32 4, 34 8" stroke="#4CAF50" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <text x="32" y="56" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#333" text-anchor="middle">PRO</text>
+</svg>

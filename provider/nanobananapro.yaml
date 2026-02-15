@@ -1,0 +1,40 @@
+identity:
+  author: takumi
+  name: nanobananapro
+  label:
+    en_US: Nano Banana Pro
+    ja_JP: Nano Banana Pro
+    zh_Hans: Nano Banana Pro
+  description:
+    en_US: Generate and edit images using Google's Nano Banana Pro (Gemini 3 Pro Image) model.
+    ja_JP: GoogleのNano Banana Pro（Gemini 3 Pro Image）モデルを使用して画像を生成・編集します。
+    zh_Hans: 使用Google的Nano Banana Pro（Gemini 3 Pro Image）模型生成和编辑图像。
+  icon: icon.svg
+  tags:
+    - image
+
+credentials_for_provider:
+  gemini_api_key:
+    type: secret-input
+    required: true
+    label:
+      en_US: Gemini API Key
+      ja_JP: Gemini APIキー
+      zh_Hans: Gemini API Key
+    placeholder:
+      en_US: Enter your Gemini API Key
+      ja_JP: Gemini APIキーを入力してください
+      zh_Hans: 请输入你的 Gemini API Key
+    help:
+      en_US: Get your API key from Google AI Studio
+      ja_JP: Google AI StudioからAPIキーを取得してください
+      zh_Hans: 从 Google AI Studio 获取 API Key
+    url: https://aistudio.google.com/app/apikey
+
+tools:
+  - tools/generate_image.yaml
+  - tools/edit_image.yaml
+
+extra:
+  python:
+    source: provider/nanobananapro.py

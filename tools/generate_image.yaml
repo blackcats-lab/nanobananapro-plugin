@@ -1,0 +1,142 @@
+identity:
+  name: generate_image
+  author: takumi
+  label:
+    en_US: Generate Image
+    ja_JP: 画像生成
+    zh_Hans: 生成图像
+
+description:
+  human:
+    en_US: >
+      Generate high-quality images from text prompts using Nano Banana Pro
+      (Gemini 3 Pro Image). Supports up to 4K resolution with advanced text
+      rendering, multiple aspect ratios, and thinking mode for complex compositions.
+    ja_JP: >
+      Nano Banana Pro（Gemini 3 Pro Image）を使用して、テキストプロンプトから
+      高品質な画像を生成します。最大4K解像度、高精度なテキストレンダリング、
+      複数のアスペクト比、複雑な構図のための思考モードをサポートします。
+  llm: >
+    Generate images from text descriptions using Nano Banana Pro (Gemini 3 Pro Image).
+    Best for: high-fidelity images, infographics, posters with text, product mockups,
+    diagrams, illustrations, and any visual content requiring accurate text rendering.
+    Supports aspect ratios like 1:1, 16:9, 9:16, 4:3, 3:4.
+    Supports resolutions: 1K, 2K, 4K.
+
+parameters:
+  - name: prompt
+    type: string
+    required: true
+    label:
+      en_US: Prompt
+      ja_JP: プロンプト
+      zh_Hans: 提示词
+    human_description:
+      en_US: Describe the image you want to generate. Be specific and detailed.
+      ja_JP: 生成したい画像の詳細な説明を入力してください。
+    llm_description: >
+      A detailed text description of the image to generate.
+      Be specific about composition, style, lighting, colors, and any text to render.
+      The more detailed the prompt, the better the result.
+    form: llm
+
+  - name: system_prompt
+    type: string
+    required: false
+    label:
+      en_US: System Prompt
+      ja_JP: システムプロンプト
+      zh_Hans: 系统提示词
+    human_description:
+      en_US: >
+        Optional system instruction to guide the model's behavior.
+        For example, you can set a consistent style or persona.
+      ja_JP: >
+        モデルの動作を制御するオプションのシステム指示。
+        例えば、一貫したスタイルやペルソナを設定できます。
+    form: form
+
+  - name: aspect_ratio
+    type: select
+    required: false
+    default: "1:1"
+    label:
+      en_US: Aspect Ratio
+      ja_JP: アスペクト比
+      zh_Hans: 纵横比
+    human_description:
+      en_US: The aspect ratio of the generated image.
+      ja_JP: 生成する画像のアスペクト比。
+    llm_description: >
+      Aspect ratio for the output image.
+      Use 1:1 for square, 16:9 for landscape/widescreen, 9:16 for portrait/mobile,
+      4:3 for standard landscape, 3:4 for standard portrait.
+    options:
+      - value: "1:1"
+        label:
+          en_US: "1:1 (Square)"
+          ja_JP: "1:1（正方形）"
+      - value: "16:9"
+        label:
+          en_US: "16:9 (Landscape)"
+          ja_JP: "16:9（横長）"
+      - value: "9:16"
+        label:
+          en_US: "9:16 (Portrait)"
+          ja_JP: "9:16（縦長）"
+      - value: "4:3"
+        label:
+          en_US: "4:3 (Standard)"
+          ja_JP: "4:3（標準）"
+      - value: "3:4"
+        label:
+          en_US: "3:4 (Portrait Standard)"
+          ja_JP: "3:4（縦長標準）"
+    form: form
+
+  - name: resolution
+    type: select
+    required: false
+    default: "1K"
+    label:
+      en_US: Resolution
+      ja_JP: 解像度
+      zh_Hans: 分辨率
+    human_description:
+      en_US: Output resolution. Higher resolution takes longer and costs more.
+      ja_JP: 出力解像度。高解像度は処理時間とコストが増加します。
+    llm_description: >
+      Resolution of the output image. 1K for fast previews, 2K for high quality,
+      4K for professional/print quality.
+    options:
+      - value: "1K"
+        label:
+          en_US: "1K (1024px)"
+          ja_JP: "1K（1024px）"
+      - value: "2K"
+        label:
+          en_US: "2K (2048px)"
+          ja_JP: "2K（2048px）"
+      - value: "4K"
+        label:
+          en_US: "4K (4096px)"
+          ja_JP: "4K（4096px）"
+    form: form
+
+  - name: temperature
+    type: number
+    required: false
+    default: 1.0
+    min: 0.0
+    max: 2.0
+    label:
+      en_US: Temperature
+      ja_JP: Temperature
+    human_description:
+      en_US: Controls randomness. Lower values produce more deterministic results.
+      ja_JP: ランダム性の制御。低い値はより決定的な結果を生成します。
+    form: form
+
+extra:
+  python:
+    source: tools/generate_image.py
