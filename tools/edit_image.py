@@ -28,8 +28,8 @@ class EditImageTool(Tool):
         # --- Extract parameters ---
         prompt = tool_parameters["prompt"]
         image_file = tool_parameters.get("image")
-        aspect_ratio = tool_parameters.get("aspect_ratio", "1:1")
-        resolution = tool_parameters.get("resolution", "1K")
+        aspect_ratio = tool_parameters.get("aspect_ratio", "auto")
+        resolution = tool_parameters.get("resolution", "auto")
         system_prompt = tool_parameters.get("system_prompt", "")
 
         # --- Validate image input ---
@@ -65,6 +65,18 @@ class EditImageTool(Tool):
             return
 
         # --- Build request payload ---
+        generation_config: dict = {
+            "responseModalities": ["TEXT", "IMAGE"],
+        }
+
+        image_config: dict = {}
+        if aspect_ratio != "auto":
+            image_config["aspectRatio"] = aspect_ratio
+        if resolution != "auto":
+            image_config["imageSize"] = resolution
+        if image_config:
+            generation_config["imageConfig"] = image_config
+
         payload = {
             "contents": [
                 {
@@ -79,13 +91,7 @@ class EditImageTool(Tool):
                     ]
                 }
             ],
-            "generationConfig": {
-                "responseModalities": ["TEXT", "IMAGE"],
-                "imageConfig": {
-                    "aspectRatio": aspect_ratio,
-                    "imageSize": resolution,
-                },
-            },
+            "generationConfig": generation_config,
         }
 
         if system_prompt:

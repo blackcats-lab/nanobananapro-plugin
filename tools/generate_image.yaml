@@ -59,7 +59,7 @@ parameters:
   - name: aspect_ratio
     type: select
     required: false
-    default: "1:1"
+    default: "auto"
     label:
       en_US: Aspect Ratio
       ja_JP: アスペクト比
@@ -69,9 +69,14 @@ parameters:
       ja_JP: 生成する画像のアスペクト比。
     llm_description: >
       Aspect ratio for the output image.
-      Use 1:1 for square, 16:9 for landscape/widescreen, 9:16 for portrait/mobile,
+      Use auto to let the API decide automatically,
+      1:1 for square, 16:9 for landscape/widescreen, 9:16 for portrait/mobile,
       4:3 for standard landscape, 3:4 for standard portrait.
     options:
+      - value: "auto"
+        label:
+          en_US: "Auto"
+          ja_JP: "自動"
       - value: "1:1"
         label:
           en_US: "1:1 (Square)"
@@ -97,7 +102,7 @@ parameters:
   - name: resolution
     type: select
     required: false
-    default: "1K"
+    default: "auto"
     label:
       en_US: Resolution
       ja_JP: 解像度
@@ -106,9 +111,14 @@ parameters:
       en_US: Output resolution. Higher resolution takes longer and costs more.
       ja_JP: 出力解像度。高解像度は処理時間とコストが増加します。
     llm_description: >
-      Resolution of the output image. 1K for fast previews, 2K for high quality,
+      Resolution of the output image. Auto to let the API decide,
+      1K for fast previews, 2K for high quality,
       4K for professional/print quality.
     options:
+      - value: "auto"
+        label:
+          en_US: "Auto"
+          ja_JP: "自動"
       - value: "1K"
         label:
           en_US: "1K (1024px)"
