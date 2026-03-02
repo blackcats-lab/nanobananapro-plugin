@@ -1,0 +1,71 @@
+name: Release Plugin Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Dify Plugin CLI
+        run: |
+          DIFY_PLUGIN_URL=$(
+            curl -s https://api.github.com/repos/langgenius/dify-plugin-daemon/releases/latest \
+            | jq -r '.assets[] | select(.name == "dify-plugin-linux-amd64") | .browser_download_url'
+          )
+          curl -L -o "${RUNNER_TEMP}/dify" "${DIFY_PLUGIN_URL}"
+          chmod +x "${RUNNER_TEMP}/dify"
+
+      - name: Get plugin info from manifest
+        id: info
+        run: |
+          PLUGIN_NAME=$(grep '^name:' manifest.yaml | sed 's/name: *"\{0,1\}\([^"]*\)"\{0,1\}/\1/')
+          PLUGIN_VERSION=$(grep '^version:' manifest.yaml | sed 's/version: *"\{0,1\}\([^"]*\)"\{0,1\}/\1/')
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          echo "plugin_name=${PLUGIN_NAME}" >> "$GITHUB_OUTPUT"
+          echo "plugin_version=${PLUGIN_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag_version=${TAG_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify version consistency
+        run: |
+          if [ "${{ steps.info.outputs.plugin_version }}" != "${{ steps.info.outputs.tag_version }}" ]; then
+            echo "ERROR: Tag version (${{ steps.info.outputs.tag_version }}) does not match manifest version (${{ steps.info.outputs.plugin_version }})"
+            exit 1
+          fi
+
+      - name: Package plugin
+        id: package
+        run: |
+          PACKAGE_NAME="${{ steps.info.outputs.plugin_name }}-${{ steps.info.outputs.tag_version }}.difypkg"
+          "${RUNNER_TEMP}/dify" plugin package . -o "${PACKAGE_NAME}"
+          echo "package_name=${PACKAGE_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "v${{ steps.info.outputs.tag_version }}"
+          body: |
+            ## Nano Banana Pro Plugin v${{ steps.info.outputs.tag_version }}
+
+            ### インストール方法
+
+            #### GitHub からインストール
+            1. Dify のプラグイン管理画面を開く
+            2. 「GitHub からインストール」を選択
+            3. リポジトリ: `kuroneko4423/nanobananapro-plugin`
+            4. バージョンを選択してインストール
+
+            #### 手動インストール
+            以下の `.difypkg` ファイルをダウンロードし、Dify のプラグイン管理画面からアップロードしてください。
+          files: |
+            ${{ steps.package.outputs.package_name }}
+          draft: false
+          prerelease: false
