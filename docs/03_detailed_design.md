@@ -6,15 +6,16 @@
 |------|------|
 | 文書名 | 詳細設計書 |
 | プロジェクト名 | Nano Banana Pro Plugin |
-| バージョン | 0.0.1 |
+| バージョン | 0.1.0 |
 | 作成日 | 2025-02-14 |
-| 作成者 | takumi |
+| 作成者 | kuroneko4423 |
 
 ### 改訂履歴
 
 | 版数 | 日付 | 改訂内容 | 担当者 |
 |------|------|----------|--------|
 | 0.0.1 | 2025-02-14 | 初版作成 | takumi |
+| 0.1.0 | 2026-03-02 | MODEL_ID 定数削除、model パラメータによる動的モデル選択追加、デフォルト値変更（auto）、条件付き imageConfig 生成 | kuroneko4423 |
 
 ---
 
@@ -36,8 +37,8 @@ dify_plugin.Tool
 | クラス名 | 基底クラス | ファイルパス | 行数 | 責務 |
 |---------|-----------|-------------|------|------|
 | `NanoBananaProProvider` | `ToolProvider` | `provider/nanobananapro.py` | 49 行 | Gemini API キーの検証 |
-| `GenerateImageTool` | `Tool` | `tools/generate_image.py` | 155 行 | テキストからの画像生成 |
-| `EditImageTool` | `Tool` | `tools/edit_image.py` | 221 行 | 既存画像の自然言語編集 |
+| `GenerateImageTool` | `Tool` | `tools/generate_image.py` | 169 行 | テキストからの画像生成 |
+| `EditImageTool` | `Tool` | `tools/edit_image.py` | 234 行 | 既存画像の自然言語編集 |
 
 ---
 
@@ -107,7 +108,8 @@ dify_plugin.Tool
 | 定数名 | 値 | スコープ |
 |--------|-----|---------|
 | `GEMINI_API_BASE` | `"https://generativelanguage.googleapis.com/v1beta"` | モジュールレベル |
-| `MODEL_ID` | `"gemini-3-pro-image-preview"` | モジュールレベル |
+
+> **注記**: v0.0.1 で存在した `MODEL_ID` 定数は v0.1.0 で削除された。モデル ID は `tool_parameters.get("model", "gemini-3-pro-image-preview")` により動的に取得される。
 
 ### 4.3 メソッド詳細
 
@@ -123,42 +125,40 @@ dify_plugin.Tool
 **パラメータ抽出ロジック**:
 
 ```python
-prompt = tool_parameters["prompt"]                          # 必須（KeyError の場合は未処理）
-aspect_ratio = tool_parameters.get("aspect_ratio", "1:1")   # デフォルト: "1:1"
-resolution = tool_parameters.get("resolution", "1K")         # デフォルト: "1K"
-temperature = tool_parameters.get("temperature", 1.0)        # デフォルト: 1.0
-system_prompt = tool_parameters.get("system_prompt", "")     # デフォルト: ""
+prompt = tool_parameters["prompt"]                              # 必須（KeyError の場合は未処理）
+model_id = tool_parameters.get("model", "gemini-3-pro-image-preview")  # デフォルト: Pro モデル
+aspect_ratio = tool_parameters.get("aspect_ratio", "auto")      # デフォルト: "auto"
+resolution = tool_parameters.get("resolution", "auto")           # デフォルト: "auto"
+temperature = tool_parameters.get("temperature", 1.0)            # デフォルト: 1.0
+system_prompt = tool_parameters.get("system_prompt", "")         # デフォルト: ""
 ```
 
 **API ペイロード構造**:
 
-```json
-{
-  "contents": [
-    {
-      "parts": [{"text": "<prompt>"}]
-    }
-  ],
-  "generationConfig": {
+```python
+generation_config = {
     "responseModalities": ["TEXT", "IMAGE"],
-    "temperature": 1.0,
-    "imageConfig": {
-      "aspectRatio": "1:1",
-      "imageSize": "1K"
-    }
-  }
+    "temperature": temperature,
 }
+
+image_config = {}
+if aspect_ratio != "auto":
+    image_config["aspectRatio"] = aspect_ratio
+if resolution != "auto":
+    image_config["imageSize"] = resolution
+if image_config:
+    generation_config["imageConfig"] = image_config
+
+payload = {
+    "contents": [{"parts": [{"text": prompt}]}],
+    "generationConfig": generation_config,
+}
+
+if system_prompt:
+    payload["systemInstruction"] = {"parts": [{"text": system_prompt}]}
 ```
 
-`system_prompt` が空でない場合、以下が追加される：
-
-```json
-{
-  "systemInstruction": {
-    "parts": [{"text": "<system_prompt>"}]
-  }
-}
-```
+> **注記**: `aspect_ratio` および `resolution` が `"auto"` の場合、`imageConfig` は API ペイロードに含まれない。これにより、API 側のデフォルト動作に委ねる設計となっている。
 
 **レスポンスパース処理**:
 
@@ -208,7 +208,7 @@ except (json.JSONDecodeError, ValueError):
 
 ### 5.2 定数
 
-GenerateImageTool と同一（`GEMINI_API_BASE`, `MODEL_ID`）。
+GenerateImageTool と同一（`GEMINI_API_BASE` のみ）。`MODEL_ID` 定数は v0.1.0 で削除された。
 
 ### 5.3 メソッド詳細
 
@@ -227,29 +227,31 @@ GenerateImageTool と同一（`GEMINI_API_BASE`, `MODEL_ID`）。
 
 **画像編集時のペイロード構造**:
 
-```json
-{
-  "contents": [
-    {
-      "parts": [
-        {"text": "<edit_instructions>"},
-        {
-          "inlineData": {
-            "mimeType": "image/png",
-            "data": "<base64_encoded_image>"
-          }
-        }
-      ]
-    }
-  ],
-  "generationConfig": {
+```python
+generation_config = {
     "responseModalities": ["TEXT", "IMAGE"],
-    "imageConfig": {
-      "aspectRatio": "1:1",
-      "imageSize": "1K"
-    }
-  }
 }
+
+image_config = {}
+if aspect_ratio != "auto":
+    image_config["aspectRatio"] = aspect_ratio
+if resolution != "auto":
+    image_config["imageSize"] = resolution
+if image_config:
+    generation_config["imageConfig"] = image_config
+
+payload = {
+    "contents": [{
+        "parts": [
+            {"text": prompt},
+            {"inlineData": {"mimeType": mime_type, "data": image_b64}},
+        ]
+    }],
+    "generationConfig": generation_config,
+}
+
+if system_prompt:
+    payload["systemInstruction"] = {"parts": [{"text": system_prompt}]}
 ```
 
 #### `_read_image(self, image_file: Any) -> dict | None`
@@ -343,11 +345,11 @@ if __name__ == "__main__":
 
 | フィールド | 値 | 説明 |
 |-----------|-----|------|
-| `version` | `0.0.1` | プラグインバージョン |
+| `version` | `0.1.0` | プラグインバージョン |
 | `type` | `plugin` | パッケージタイプ |
-| `author` | `"takumi"` | 作成者 |
+| `author` | `"kuroneko4423"` | 作成者 |
 | `name` | `"nanobananapro"` | プラグイン内部名 |
-| `description` | 多言語 (en_US, ja_JP, zh_Hans) | プラグイン説明 |
+| `description` | 多言語 (en_US, ja_JP, zh_Hans) | プラグイン説明（Nano Banana Pro および Nano Banana 2 の両モデル対応） |
 | `icon` | `"icon.svg"` | `_assets/` 配下のアイコン |
 | `label` | 多言語 | 表示名 |
 | `created_at` | `"2025-02-14T00:00:00.000Z"` | 作成日時 |
@@ -381,7 +383,7 @@ if __name__ == "__main__":
 | `identity` | ツールの名前（`generate_image`）、ラベル |
 | `description.human` | ユーザー向け説明（多言語） |
 | `description.llm` | LLM 向け説明（英語のみ、ツール選択の判断材料） |
-| `parameters` | 5 パラメータの定義（prompt, system_prompt, aspect_ratio, resolution, temperature） |
+| `parameters` | 6 パラメータの定義（model, prompt, system_prompt, aspect_ratio, resolution, temperature） |
 | `extra.python.source` | Python ソースファイルへの参照 |
 
 **`form` フィールドの区分**:
@@ -438,12 +440,9 @@ except Exception as e:            # 3. その他すべて（最も一般的）
 - `tools/generate_image.py`（12 行目）
 - `tools/edit_image.py`（12 行目）
 
-`MODEL_ID` は以下の 2 ファイルで定義されている：
-
-- `tools/generate_image.py`（13 行目）
-- `tools/edit_image.py`（13 行目）
-
 各モジュールが独立して動作できるよう、意図的に重複定義としている。
+
+> **注記**: v0.0.1 で存在した `MODEL_ID` 定数は v0.1.0 で削除された。モデル ID は各ツールの `_invoke` メソッド内で `tool_parameters.get("model", "gemini-3-pro-image-preview")` により動的に取得する設計に変更された。
 
 ### 8.3 ジェネレータパターンの採用
 

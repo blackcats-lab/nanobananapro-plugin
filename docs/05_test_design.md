@@ -6,15 +6,16 @@
 |------|------|
 | 文書名 | テスト設計書 |
 | プロジェクト名 | Nano Banana Pro Plugin |
-| バージョン | 0.0.1 |
+| バージョン | 0.1.0 |
 | 作成日 | 2025-02-14 |
-| 作成者 | takumi |
+| 作成者 | kuroneko4423 |
 
 ### 改訂履歴
 
 | 版数 | 日付 | 改訂内容 | 担当者 |
 |------|------|----------|--------|
 | 0.0.1 | 2025-02-14 | 初版作成 | takumi |
+| 0.1.0 | 2026-03-02 | model パラメータ関連テストケース追加、auto パラメータテスト追加、Flash 専用パラメータテスト追加、デフォルト値更新 | kuroneko4423 |
 
 ---
 
@@ -85,7 +86,7 @@ tests/
 
 | テスト ID | テスト名 | 前提条件 | 入力 | 期待結果 |
 |----------|---------|---------|------|---------|
-| TC-GEN-001 | 正常生成（デフォルト設定） | モック: 200 応答（テキスト + 画像） | `prompt="a cat"` | Blob メッセージ（画像）+ テキストメッセージ |
+| TC-GEN-001 | 正常生成（デフォルト設定） | モック: 200 応答（テキスト + 画像） | `prompt="a cat"` | Blob メッセージ（画像）+ テキストメッセージ。デフォルト: `model="gemini-3-pro-image-preview"`, `aspect_ratio="auto"`, `resolution="auto"` |
 | TC-GEN-002 | アスペクト比指定 | モック: 200 応答 | `aspect_ratio="16:9"` | ペイロードの `imageConfig.aspectRatio` が `"16:9"` |
 | TC-GEN-003 | 解像度指定 | モック: 200 応答 | `resolution="4K"` | ペイロードの `imageConfig.imageSize` が `"4K"` |
 | TC-GEN-004 | temperature 指定 | モック: 200 応答 | `temperature=0.5` | ペイロードの `temperature` が `0.5` |
@@ -110,6 +111,18 @@ tests/
 |----------|---------|---------|------|---------|
 | TC-GEN-014 | JSON エラーレスポンス | レスポンス: `{"error": {"message": "Bad request"}}` | response オブジェクト | `"Bad request"` |
 | TC-GEN-015 | 非 JSON レスポンス | レスポンス: プレーンテキスト | response オブジェクト | テキストの先頭 500 文字 |
+
+#### モデル選択・auto パラメータ・Flash 専用パラメータ
+
+| テスト ID | テスト名 | 前提条件 | 入力 | 期待結果 |
+|----------|---------|---------|------|---------|
+| TC-GEN-016 | モデル選択（Pro） | モック: 200 応答 | `model="gemini-3-pro-image-preview"` | API URL に `gemini-3-pro-image-preview` が含まれる |
+| TC-GEN-017 | モデル選択（Flash） | モック: 200 応答 | `model="gemini-3.1-flash-image-preview"` | API URL に `gemini-3.1-flash-image-preview` が含まれる |
+| TC-GEN-018 | auto アスペクト比 | モック: 200 応答 | `aspect_ratio="auto"` | ペイロードの `imageConfig` に `aspectRatio` フィールドが含まれない |
+| TC-GEN-019 | auto 解像度 | モック: 200 応答 | `resolution="auto"` | ペイロードの `imageConfig` に `imageSize` フィールドが含まれない |
+| TC-GEN-020 | auto 両方（imageConfig 省略） | モック: 200 応答 | `aspect_ratio="auto", resolution="auto"` | ペイロードの `generationConfig` に `imageConfig` 自体が含まれない |
+| TC-GEN-021 | Flash 専用アスペクト比 | モック: 200 応答 | `model="gemini-3.1-flash-image-preview", aspect_ratio="21:9"` | ペイロードの `imageConfig.aspectRatio` が `"21:9"` |
+| TC-GEN-022 | Flash 専用解像度 | モック: 200 応答 | `model="gemini-3.1-flash-image-preview", resolution="0.5K"` | ペイロードの `imageConfig.imageSize` が `"0.5K"` |
 
 ---
 
@@ -153,6 +166,15 @@ tests/
 |----------|---------|---------|------|---------|
 | TC-EDIT-011 | 画像読み込みエラー（例外） | `_read_image` で例外発生 | 異常な画像オブジェクト | テキスト `"Error reading image: ..."` |
 | TC-EDIT-012 | 画像読み込み失敗（None） | `_read_image` が `None` を返却 | 未対応型の画像オブジェクト | テキスト `"Error: Failed to read the input image."` |
+
+#### モデル選択・auto パラメータ・Flash 専用パラメータ
+
+| テスト ID | テスト名 | 前提条件 | 入力 | 期待結果 |
+|----------|---------|---------|------|---------|
+| TC-EDIT-013 | Flash モデルでの編集 | モック: 200 応答 | `model="gemini-3.1-flash-image-preview", prompt="edit", image=valid_image` | API URL に `gemini-3.1-flash-image-preview` が含まれる |
+| TC-EDIT-014 | auto アスペクト比での編集 | モック: 200 応答 | `aspect_ratio="auto", prompt="edit", image=valid_image` | ペイロードの `imageConfig` に `aspectRatio` フィールドが含まれない |
+| TC-EDIT-015 | auto 解像度での編集 | モック: 200 応答 | `resolution="auto", prompt="edit", image=valid_image` | ペイロードの `imageConfig` に `imageSize` フィールドが含まれない |
+| TC-EDIT-016 | Flash 専用アスペクト比での編集 | モック: 200 応答 | `model="gemini-3.1-flash-image-preview", aspect_ratio="21:9", prompt="edit", image=valid_image` | ペイロードの `imageConfig.aspectRatio` が `"21:9"` |
 
 > **注記**: API エラー、タイムアウト、接続エラー、安全性ブロックのテストは TC-GEN と同一パターンのため省略。実装時は画像生成テストと同様のケースを追加する。
 
@@ -225,6 +247,8 @@ def test_generate_image_success(mock_post):
     mock_post.return_value = mock_response
     # ... テスト実行
 ```
+
+> **注記**: `model` パラメータのテストでは、`mock_post` の呼び出し引数（URL）を検証し、指定したモデル ID（`gemini-3-pro-image-preview` または `gemini-3.1-flash-image-preview`）が URL に含まれていることを確認する。`auto` パラメータのテストでは、`mock_post` に渡された JSON ペイロードを検証し、`imageConfig` の有無やフィールドの省略を確認する。
 
 #### Dify ファイルオブジェクトのモック例
 

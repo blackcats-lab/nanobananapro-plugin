@@ -6,15 +6,16 @@
 |------|------|
 | 文書名 | 基本設計書 |
 | プロジェクト名 | Nano Banana Pro Plugin |
-| バージョン | 0.0.1 |
+| バージョン | 0.1.0 |
 | 作成日 | 2025-02-14 |
-| 作成者 | takumi |
+| 作成者 | kuroneko4423 |
 
 ### 改訂履歴
 
 | 版数 | 日付 | 改訂内容 | 担当者 |
 |------|------|----------|--------|
 | 0.0.1 | 2025-02-14 | 初版作成 | takumi |
+| 0.1.0 | 2026-03-02 | Nano Banana 2 モデルサポート追加、model パラメータ追加、auto オプション追加、Flash 専用オプション追加 | kuroneko4423 |
 
 ---
 
@@ -22,7 +23,7 @@
 
 ### 2.1 プラグインの目的
 
-Nano Banana Pro Plugin は、Dify プラットフォーム上で Google の Nano Banana Pro（Gemini 3 Pro Image）モデルを利用した画像生成・編集機能を提供する Dify プラグインである。
+Nano Banana Pro Plugin は、Dify プラットフォーム上で Google の **Nano Banana Pro（Gemini 3 Pro Image）** および **Nano Banana 2（Gemini 3.1 Flash Image）** モデルを利用した画像生成・編集機能を提供する Dify プラグインである。
 
 本プラグインにより、Dify ユーザーはワークフロー内で以下の操作を実行できる：
 
@@ -39,8 +40,10 @@ Nano Banana Pro Plugin は、Dify プラットフォーム上で Google の Nano
 | 名称 | 説明 |
 |------|------|
 | Nano Banana Pro | プラグインの表示名 |
+| Nano Banana 2 | 第二モデルの表示名 |
 | nanobananapro | プラグインの内部名（manifest.yaml） |
-| gemini-3-pro-image-preview | 利用する Gemini モデル ID |
+| gemini-3-pro-image-preview | 利用する Gemini モデル ID（Pro） |
+| gemini-3.1-flash-image-preview | 利用する Gemini モデル ID（Flash） |
 
 ---
 
@@ -83,9 +86,11 @@ Nano Banana Pro Plugin は、Dify プラットフォーム上で Google の Nano
                                           │  Google Gemini API     │
                                           │  (v1beta)              │
                                           │                        │
-                                          │  Model:                │
-                                          │  gemini-3-pro-image-   │
-                                          │  preview               │
+                                          │  Models:               │
+                                          │  - gemini-3-pro-image- │
+                                          │    preview             │
+                                          │  - gemini-3.1-flash-   │
+                                          │    image-preview       │
                                           └────────────────────────┘
 ```
 
@@ -93,6 +98,9 @@ Nano Banana Pro Plugin は、Dify プラットフォーム上で Google の Nano
 
 ```
 nanobananapro-plugin/
+├── .github/
+│   └── workflows/
+│       └── release.yml              # リリース自動化ワークフロー
 ├── _assets/
 │   └── icon.svg                  # プラグインアイコン
 ├── provider/
@@ -132,8 +140,9 @@ nanobananapro-plugin/
 ```
 ユーザー入力                  Plugin                          Gemini API
     │                          │                                │
-    │  prompt, aspect_ratio,   │                                │
-    │  resolution, temperature │                                │
+    │  model, prompt,            │                                │
+    │  aspect_ratio, resolution, │                                │
+    │  temperature               │                                │
     │─────────────────────────>│                                │
     │                          │  POST /generateContent         │
     │                          │  (JSON: text + config)         │
@@ -155,8 +164,8 @@ nanobananapro-plugin/
 ```
 ユーザー入力                  Plugin                          Gemini API
     │                          │                                │
-    │  prompt, image,          │                                │
-    │  aspect_ratio, resolution│                                │
+    │  model, prompt, image,     │                                │
+    │  aspect_ratio, resolution  │                                │
     │─────────────────────────>│                                │
     │                          │ _read_image()                  │
     │                          │ → Base64エンコード              │
@@ -203,7 +212,7 @@ Dify 管理画面               Provider                        Gemini API
 | フレームワーク | Dify Plugin SDK | `dify_plugin` |
 | HTTP クライアント | requests | >= 2.31.0 |
 | 外部 API | Google Gemini API | v1beta |
-| モデル | gemini-3-pro-image-preview | - |
+| モデル | gemini-3-pro-image-preview, gemini-3.1-flash-image-preview | - |
 
 ---
 
@@ -252,7 +261,7 @@ Dify 管理画面               Provider                        Gemini API
 |------|-----|
 | ベース URL | `https://generativelanguage.googleapis.com/v1beta` |
 | 認証方式 | API キー（URL クエリパラメータ `key`） |
-| モデル | `gemini-3-pro-image-preview` |
+| モデル | `gemini-3-pro-image-preview`（Pro）, `gemini-3.1-flash-image-preview`（Flash） |
 | プロトコル | HTTPS |
 
 ### 7.2 Dify Plugin インターフェース
@@ -294,4 +303,4 @@ Dify 管理画面               Provider                        Gemini API
 
 - Provider / Tool の分離によるモジュール構成
 - YAML ベースの宣言的なツール定義
-- ソースコード約 450 行の小規模構成
+- ソースコード約 470 行の小規模構成

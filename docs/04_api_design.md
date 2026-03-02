@@ -6,15 +6,16 @@
 |------|------|
 | 文書名 | API 設計書 |
 | プロジェクト名 | Nano Banana Pro Plugin |
-| バージョン | 0.0.1 |
+| バージョン | 0.1.0 |
 | 作成日 | 2025-02-14 |
-| 作成者 | takumi |
+| 作成者 | kuroneko4423 |
 
 ### 改訂履歴
 
 | 版数 | 日付 | 改訂内容 | 担当者 |
 |------|------|----------|--------|
 | 0.0.1 | 2025-02-14 | 初版作成 | takumi |
+| 0.1.0 | 2026-03-02 | 対象モデルに gemini-3.1-flash-image-preview を追加、動的モデル選択対応、auto パラメータ追加、Flash 専用パラメータ追加 | kuroneko4423 |
 
 ---
 
@@ -27,7 +28,7 @@
 | API 名 | Google Gemini API |
 | API バージョン | v1beta |
 | ベース URL | `https://generativelanguage.googleapis.com/v1beta` |
-| 対象モデル | `gemini-3-pro-image-preview` |
+| 対象モデル | `gemini-3-pro-image-preview`（Pro）, `gemini-3.1-flash-image-preview`（Flash） |
 
 ### 2.2 認証方式
 
@@ -44,7 +45,9 @@
 | # | メソッド | エンドポイント | 用途 | 使用箇所 |
 |---|---------|---------------|------|---------|
 | API-001 | GET | `/v1beta/models` | モデル一覧取得（認証検証用） | `NanoBananaProProvider` |
-| API-002 | POST | `/v1beta/models/gemini-3-pro-image-preview:generateContent` | 画像生成・画像編集 | `GenerateImageTool`, `EditImageTool` |
+| API-002 | POST | `/v1beta/models/{model_id}:generateContent` | 画像生成・画像編集 | `GenerateImageTool`, `EditImageTool` |
+
+> **注記**: `{model_id}` は `model` パラメータから取得する値。`gemini-3-pro-image-preview`（デフォルト）または `gemini-3.1-flash-image-preview` のいずれか。
 
 ---
 
@@ -92,7 +95,7 @@ GET https://generativelanguage.googleapis.com/v1beta/models?key=AIzaSy...
 | 項目 | 値 |
 |------|-----|
 | メソッド | POST |
-| URL | `{BASE_URL}/models/gemini-3-pro-image-preview:generateContent?key={api_key}` |
+| URL | `{BASE_URL}/models/{model_id}:generateContent?key={api_key}` |
 | Content-Type | `application/json` |
 | タイムアウト | 120 秒 |
 
@@ -128,6 +131,8 @@ GET https://generativelanguage.googleapis.com/v1beta/models?key=AIzaSy...
 ```
 
 > **注記**: `systemInstruction` は `system_prompt` が空でない場合のみ含まれる。
+>
+> **注記**: `imageConfig` は `aspect_ratio` および `resolution` が `"auto"` でない場合にのみ含まれる。`"auto"` の場合、対応するフィールドは省略され、API 側のデフォルト動作となる。
 
 ### 5.3 リクエストボディ（画像編集）
 
@@ -159,6 +164,8 @@ GET https://generativelanguage.googleapis.com/v1beta/models?key=AIzaSy...
 ```
 
 > **注記**: 画像編集時のリクエストには `temperature` フィールドを含まない。
+>
+> **注記**: `imageConfig` は `aspect_ratio` および `resolution` が `"auto"` でない場合にのみ含まれる（画像生成と同様）。
 
 ### 5.4 画像生成と画像編集のリクエスト差分
 
@@ -246,23 +253,37 @@ GET https://generativelanguage.googleapis.com/v1beta/models?key=AIzaSy...
 
 ### 6.2 aspectRatio
 
-| 値 | 説明 | 用途例 |
-|----|------|-------|
-| `"1:1"` | 正方形 | プロフィール画像、サムネイル |
-| `"16:9"` | 横長ワイドスクリーン | プレゼン資料、バナー |
-| `"9:16"` | 縦長 | スマートフォン壁紙、ストーリー |
-| `"4:3"` | 標準横長 | 一般的な写真比率 |
-| `"3:4"` | 標準縦長 | ポートレート写真 |
+| 値 | 説明 | 用途例 | 対応モデル |
+|----|------|-------|-----------|
+| `"auto"` | API のデフォルトに任せる | デフォルト設定 | 全モデル |
+| `"1:1"` | 正方形 | プロフィール画像、サムネイル | 全モデル |
+| `"16:9"` | 横長ワイドスクリーン | プレゼン資料、バナー | 全モデル |
+| `"9:16"` | 縦長 | スマートフォン壁紙、ストーリー | 全モデル |
+| `"4:3"` | 標準横長 | 一般的な写真比率 | 全モデル |
+| `"3:4"` | 標準縦長 | ポートレート写真 | 全モデル |
+| `"2:3"` | 縦長 | ブックカバー | Flash 専用 |
+| `"3:2"` | 横長 | 横長写真 | Flash 専用 |
+| `"4:5"` | 縦長トール | Instagram ポートレート | Flash 専用 |
+| `"5:4"` | 横長ワイド | 横長標準 | Flash 専用 |
+| `"1:4"` | 超縦長 | バナー、サイドバー | Flash 専用 |
+| `"4:1"` | 超横長 | ヘッダーバナー | Flash 専用 |
+| `"1:8"` | 極端縦長 | スクロール用 | Flash 専用 |
+| `"8:1"` | 極端横長 | パノラマバナー | Flash 専用 |
+| `"21:9"` | シネマティック | 映画的構図 | Flash 専用 |
+
+> `"auto"` が指定された場合、`imageConfig` 内に `aspectRatio` フィールドは含まれない（API のデフォルト動作）。
 
 ### 6.3 imageSize
 
-| 値 | ピクセル数 | 用途 |
-|----|-----------|------|
-| `"1K"` | 1024px | プレビュー、Web 表示向け |
-| `"2K"` | 2048px | 高品質表示 |
-| `"4K"` | 4096px | 印刷品質、プロフェッショナル用途 |
+| 値 | ピクセル数 | 用途 | 対応モデル |
+|----|-----------|------|-----------|
+| `"auto"` | API のデフォルト | デフォルト設定 | 全モデル |
+| `"0.5K"` | 512px | 高速プレビュー | Flash 専用 |
+| `"1K"` | 1024px | プレビュー、Web 表示向け | 全モデル |
+| `"2K"` | 2048px | 高品質表示 | 全モデル |
+| `"4K"` | 4096px | 印刷品質、プロフェッショナル用途 | 全モデル |
 
-> 高解像度ほど処理時間とコストが増加する。
+> 高解像度ほど処理時間とコストが増加する。`"auto"` が指定された場合、`imageConfig` 内に `imageSize` フィールドは含まれない（API のデフォルト動作）。
 
 ### 6.4 temperature
 
@@ -319,8 +340,8 @@ API キーは URL クエリパラメータとして送信する（Gemini API の
 | 用途 | タイムアウト値 | 設定箇所 |
 |------|-------------|---------|
 | 認証検証 | 10 秒 | `provider/nanobananapro.py` L29 |
-| 画像生成 | 120 秒 | `tools/generate_image.py` L72 |
-| 画像編集 | 120 秒 | `tools/edit_image.py` L104 |
+| 画像生成 | 120 秒 | `tools/generate_image.py` L86 |
+| 画像編集 | 120 秒 | `tools/edit_image.py` L117 |
 | グローバル | 120 秒 | `main.py` L4 (`MAX_REQUEST_TIMEOUT`) |
 
 ---

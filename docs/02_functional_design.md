@@ -6,15 +6,16 @@
 |------|------|
 | 文書名 | 機能設計書 |
 | プロジェクト名 | Nano Banana Pro Plugin |
-| バージョン | 0.0.1 |
+| バージョン | 0.1.0 |
 | 作成日 | 2025-02-14 |
-| 作成者 | takumi |
+| 作成者 | kuroneko4423 |
 
 ### 改訂履歴
 
 | 版数 | 日付 | 改訂内容 | 担当者 |
 |------|------|----------|--------|
 | 0.0.1 | 2025-02-14 | 初版作成 | takumi |
+| 0.1.0 | 2026-03-02 | Nano Banana 2 モデルサポート追加、model パラメータ追加、auto オプション追加、Flash 専用オプション追加 | kuroneko4423 |
 
 ---
 
@@ -89,35 +90,55 @@ GET /v1beta/models?key={api_key}
 
 ### 4.1 機能概要
 
-テキストプロンプトから Gemini 3 Pro Image モデルを使用して高品質な画像を生成する。アスペクト比、解像度、温度パラメータなどのカスタマイズが可能。
+テキストプロンプトから **Nano Banana Pro（Gemini 3 Pro Image）** または **Nano Banana 2（Gemini 3.1 Flash Image）** モデルを使用して高品質な画像を生成する。モデル選択、アスペクト比、解像度、温度パラメータなどのカスタマイズが可能。
 
 ### 4.2 入力パラメータ一覧
 
 | パラメータ名 | 型 | 必須 | デフォルト | 入力方式 | 説明 |
 |-------------|-----|------|-----------|---------|------|
+| `model` | select | 任意 | `"gemini-3-pro-image-preview"` | form | 使用するモデルの選択 |
 | `prompt` | string | 必須 | - | llm | 生成する画像の説明テキスト |
 | `system_prompt` | string | 任意 | `""` | form | モデル動作を制御するシステム指示 |
-| `aspect_ratio` | select | 任意 | `"1:1"` | form | 出力画像のアスペクト比 |
-| `resolution` | select | 任意 | `"1K"` | form | 出力画像の解像度 |
+| `aspect_ratio` | select | 任意 | `"auto"` | form | 出力画像のアスペクト比 |
+| `resolution` | select | 任意 | `"auto"` | form | 出力画像の解像度 |
 | `temperature` | number | 任意 | `1.0` | form | ランダム性の制御（0.0〜2.0） |
 
-#### アスペクト比の選択肢
+#### モデルの選択肢
 
 | 値 | ラベル（ja_JP） | 説明 |
 |----|----------------|------|
-| `1:1` | 1:1（正方形） | 正方形 |
-| `16:9` | 16:9（横長） | 横長ワイドスクリーン |
-| `9:16` | 9:16（縦長） | 縦長（モバイル向け） |
-| `4:3` | 4:3（標準） | 標準横長 |
-| `3:4` | 3:4（縦長標準） | 標準縦長 |
+| `gemini-3-pro-image-preview` | Nano Banana Pro（Gemini 3 Pro） | 高精度なテキストレンダリング、高品質画像（デフォルト） |
+| `gemini-3.1-flash-image-preview` | Nano Banana 2（Gemini 3.1 Flash） | 高速・低コスト、追加のアスペクト比・解像度に対応 |
+
+#### アスペクト比の選択肢
+
+| 値 | ラベル（ja_JP） | 説明 | 対応モデル |
+|----|----------------|------|-----------|
+| `auto` | 自動 | API のデフォルトに任せる | 全モデル |
+| `1:1` | 1:1（正方形） | 正方形 | 全モデル |
+| `16:9` | 16:9（横長） | 横長ワイドスクリーン | 全モデル |
+| `9:16` | 9:16（縦長） | 縦長（モバイル向け） | 全モデル |
+| `4:3` | 4:3（標準） | 標準横長 | 全モデル |
+| `3:4` | 3:4（縦長標準） | 標準縦長 | 全モデル |
+| `2:3` | 2:3（縦長 - Flash 専用） | 縦長 | Flash 専用 |
+| `3:2` | 3:2（横長 - Flash 専用） | 横長 | Flash 専用 |
+| `4:5` | 4:5（縦長トール - Flash 専用） | 縦長トール | Flash 専用 |
+| `5:4` | 5:4（横長ワイド - Flash 専用） | 横長ワイド | Flash 専用 |
+| `1:4` | 1:4（超縦長 - Flash 専用） | 超縦長 | Flash 専用 |
+| `4:1` | 4:1（超横長 - Flash 専用） | 超横長 | Flash 専用 |
+| `1:8` | 1:8（極端縦長 - Flash 専用） | 極端縦長 | Flash 専用 |
+| `8:1` | 8:1（極端横長 - Flash 専用） | 極端横長 | Flash 専用 |
+| `21:9` | 21:9（シネマティック - Flash 専用） | シネマティック | Flash 専用 |
 
 #### 解像度の選択肢
 
-| 値 | ラベル | ピクセル数 |
-|----|-------|-----------|
-| `1K` | 1K（1024px） | 1024px |
-| `2K` | 2K（2048px） | 2048px |
-| `4K` | 4K（4096px） | 4096px |
+| 値 | ラベル | ピクセル数 | 対応モデル |
+|----|-------|-----------|-----------|
+| `auto` | 自動 | API のデフォルト | 全モデル |
+| `0.5K` | 0.5K（512px - Flash 専用） | 512px | Flash 専用 |
+| `1K` | 1K（1024px） | 1024px | 全モデル |
+| `2K` | 2K（2048px） | 2048px | 全モデル |
+| `4K` | 4K（4096px） | 4096px | 全モデル |
 
 #### 入力方式の区分
 
@@ -133,7 +154,7 @@ GET /v1beta/models?key={api_key}
   │
   ▼
 1. パラメータ抽出
-   prompt, aspect_ratio, resolution, temperature, system_prompt
+   model, prompt, aspect_ratio, resolution, temperature, system_prompt
   │
   ▼
 2. API キー取得（runtime.credentials）
@@ -146,11 +167,14 @@ GET /v1beta/models?key={api_key}
    - contents[0].parts[0].text = prompt
    - generationConfig.responseModalities = ["TEXT", "IMAGE"]
    - generationConfig.temperature = temperature
-   - generationConfig.imageConfig = {aspectRatio, imageSize}
+   - aspect_ratio が "auto" でなければ imageConfig.aspectRatio を設定
+   - resolution が "auto" でなければ imageConfig.imageSize を設定
+   - imageConfig が空でなければ generationConfig.imageConfig に追加
    - system_prompt が空でなければ systemInstruction を追加
   │
   ▼
-4. POST /v1beta/models/gemini-3-pro-image-preview:generateContent
+4. POST /v1beta/models/{model_id}:generateContent
+   (model_id は model パラメータから取得。デフォルト: gemini-3-pro-image-preview)
    (タイムアウト: 120 秒)
   │
   ├── Timeout ──> yield "Error: Request timed out..." → 終了
@@ -222,11 +246,12 @@ GET /v1beta/models?key={api_key}
 
 | パラメータ名 | 型 | 必須 | デフォルト | 入力方式 | 説明 |
 |-------------|-----|------|-----------|---------|------|
+| `model` | select | 任意 | `"gemini-3-pro-image-preview"` | form | 使用するモデルの選択 |
 | `prompt` | string | 必須 | - | llm | 編集指示テキスト |
 | `image` | file | 必須 | - | llm | 編集対象の入力画像 |
 | `system_prompt` | string | 任意 | `""` | form | モデル動作を制御するシステム指示 |
-| `aspect_ratio` | select | 任意 | `"1:1"` | form | 出力画像のアスペクト比 |
-| `resolution` | select | 任意 | `"1K"` | form | 出力画像の解像度 |
+| `aspect_ratio` | select | 任意 | `"auto"` | form | 出力画像のアスペクト比 |
+| `resolution` | select | 任意 | `"auto"` | form | 出力画像の解像度 |
 
 > **注記**: 画像生成機能（F-002）と異なり、`temperature` パラメータは画像編集機能では使用しない。
 
@@ -247,7 +272,7 @@ GET /v1beta/models?key={api_key}
   │
   ▼
 1. パラメータ抽出
-   prompt, image_file, aspect_ratio, resolution, system_prompt
+   model, prompt, image_file, aspect_ratio, resolution, system_prompt
   │
   ▼
 2. 入力画像の検証
@@ -276,11 +301,14 @@ GET /v1beta/models?key={api_key}
    - contents[0].parts[0].text = prompt
    - contents[0].parts[1].inlineData = {mimeType, data: image_b64}
    - generationConfig.responseModalities = ["TEXT", "IMAGE"]
-   - generationConfig.imageConfig = {aspectRatio, imageSize}
+   - aspect_ratio が "auto" でなければ imageConfig.aspectRatio を設定
+   - resolution が "auto" でなければ imageConfig.imageSize を設定
+   - imageConfig が空でなければ generationConfig.imageConfig に追加
    - system_prompt が空でなければ systemInstruction を追加
   │
   ▼
-7. POST /v1beta/models/gemini-3-pro-image-preview:generateContent
+7. POST /v1beta/models/{model_id}:generateContent
+   (model_id は model パラメータから取得。デフォルト: gemini-3-pro-image-preview)
    (タイムアウト: 120 秒)
    ※ 画像生成機能と同様のエラーハンドリング
   │
