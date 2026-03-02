@@ -1,11 +1,11 @@
-version: 0.0.1
+version: 0.1.0
 type: plugin
-author: "takumi"
+author: "kuroneko4423"
 name: "nanobananapro"
 description:
-  en_US: "Generate and edit images using Google's Nano Banana Pro (Gemini 3 Pro Image) model via the Gemini API."
-  ja_JP: "Google Gemini APIのNano Banana Pro（Gemini 3 Pro Image）モデルを使用して画像を生成・編集するプラグイン。"
-  zh_Hans: "使用Google Gemini API的Nano Banana Pro（Gemini 3 Pro Image）模型生成和编辑图像。"
+  en_US: "Generate and edit images using Nano Banana Pro (Gemini 3 Pro Image) or Nano Banana 2 (Gemini 3.1 Flash Image) via the Gemini API."
+  ja_JP: "Google Gemini APIのNano Banana Pro（Gemini 3 Pro Image）またはNano Banana 2（Gemini 3.1 Flash Image）を使用して画像を生成・編集するプラグイン。"
+  zh_Hans: "使用Google Gemini API的Nano Banana Pro（Gemini 3 Pro Image）或Nano Banana 2（Gemini 3.1 Flash Image）模型生成和编辑图像。"
 icon: "icon.svg"
 label:
   en_US: "Nano Banana Pro"
@@ -40,7 +40,7 @@ plugins:
   tools:
     - "provider/nanobananapro.yaml"
 meta:
-  version: "0.0.1"
+  version: "0.1.0"
   arch:
     - "amd64"
     - "arm64"

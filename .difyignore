@@ -4,3 +4,7 @@ __pycache__/
 *.pyc
 *.difypkg
 .claude/
+.github/
+docs/
+.gitignore
+.env.example

@@ -1,6 +1,6 @@
 # Nano Banana Pro - Dify Plugin
 
-Google Gemini API の **Nano Banana Pro**（Gemini 3 Pro Image / `gemini-3-pro-image-preview`）を Dify から利用するためのプラグインです。
+Google Gemini API の **Nano Banana Pro**（Gemini 3 Pro Image / `gemini-3-pro-image-preview`）および **Nano Banana 2**（Gemini 3.1 Flash Image / `gemini-3.1-flash-image-preview`）を Dify から利用するためのプラグインです。
 
 ## 機能
 
@@ -21,25 +21,42 @@ Google Gemini API の **Nano Banana Pro**（Gemini 3 Pro Image / `gemini-3-pro-i
 
 ### 共通パラメータ
 
+#### モデル選択
+
+| 選択肢 | モデルID | 説明 |
+| -------- | -------- | ------ |
+| Nano Banana Pro（デフォルト） | `gemini-3-pro-image-preview` | 高精度、高品質なテキストレンダリング |
+| Nano Banana 2（Flash） | `gemini-3.1-flash-image-preview` | 高速・低コスト、追加のアスペクト比・解像度対応 |
+
 #### アスペクト比
 
-| 選択肢 | 説明 |
-| -------- | ------ |
-| Auto（自動） | API のデフォルトに任せる |
-| 1:1 | 正方形 |
-| 16:9 | 横長（ワイドスクリーン） |
-| 9:16 | 縦長（モバイル） |
-| 4:3 | 標準（横長） |
-| 3:4 | 標準（縦長） |
+| 選択肢 | 説明 | 対応モデル |
+| -------- | ------ | ------ |
+| Auto（自動） | API のデフォルトに任せる | 全モデル |
+| 1:1 | 正方形 | 全モデル |
+| 16:9 | 横長（ワイドスクリーン） | 全モデル |
+| 9:16 | 縦長（モバイル） | 全モデル |
+| 4:3 | 標準（横長） | 全モデル |
+| 3:4 | 標準（縦長） | 全モデル |
+| 2:3 | 縦長 | Flash のみ |
+| 3:2 | 横長 | Flash のみ |
+| 4:5 | 縦長トール | Flash のみ |
+| 5:4 | 横長ワイド | Flash のみ |
+| 1:4 | 超縦長 | Flash のみ |
+| 4:1 | 超横長 | Flash のみ |
+| 1:8 | 極端縦長 | Flash のみ |
+| 8:1 | 極端横長 | Flash のみ |
+| 21:9 | シネマティック | Flash のみ |
 
 #### 解像度
 
-| 選択肢 | 説明 |
-| -------- | ------ |
-| Auto（自動） | API のデフォルトに任せる |
-| 1K (1024px) | プレビュー向け |
-| 2K (2048px) | 高品質 |
-| 4K (4096px) | プロ・印刷品質 |
+| 選択肢 | 説明 | 対応モデル |
+| -------- | ------ | ------ |
+| Auto（自動） | API のデフォルトに任せる | 全モデル |
+| 0.5K (512px) | 高速プレビュー | Flash のみ |
+| 1K (1024px) | プレビュー向け | 全モデル |
+| 2K (2048px) | 高品質 | 全モデル |
+| 4K (4096px) | プロ・印刷品質 | 全モデル |
 
 ## セットアップ
 
@@ -49,7 +66,21 @@ Google Gemini API の **Nano Banana Pro**（Gemini 3 Pro Image / `gemini-3-pro-i
 
 ### 2. プラグインのインストール
 
-`.difypkg` ファイルを Dify のプラグイン管理画面からアップロードしてインストールします。
+#### 方法1: GitHub からインストール（推奨）
+
+1. Dify のプラグイン管理画面を開く
+2. 「GitHub からインストール」を選択
+3. リポジトリ情報を入力:
+   - **リポジトリ**: `kuroneko4423/nanobananapro-plugin`
+4. バージョンと `.difypkg` ファイルを選択
+5. 「インストール」をクリック
+
+#### 方法2: パッケージファイルからインストール
+
+1. [Releases ページ](https://github.com/kuroneko4423/nanobananapro-plugin/releases) から `.difypkg` ファイルをダウンロード
+2. Dify のプラグイン管理画面を開く
+3. 「ローカルからアップロード」を選択
+4. `.difypkg` ファイルをアップロードしてインストール
 
 ### 3. 認証情報の設定
 
@@ -215,6 +246,13 @@ nanobananapro-plugin/
 - テキストレンダリングの精度が非常に高い
 - 最大 14 枚の参照画像をサポート
 - 最大 5 人の人物の一貫性を維持
+- SynthID ウォーターマーク付き
+
+**Nano Banana 2**（`gemini-3.1-flash-image-preview`）は高速・低コストの画像生成・編集モデルです。
+
+- Nano Banana Pro より高速でコスト効率が高い
+- 追加のアスペクト比に対応（2:3, 3:2, 4:5, 5:4, 1:4, 4:1, 1:8, 8:1, 21:9）
+- 0.5K（512px）解像度をサポート
 - SynthID ウォーターマーク付き
 
 ## ライセンス

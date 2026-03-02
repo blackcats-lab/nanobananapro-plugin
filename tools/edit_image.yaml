@@ -1,6 +1,6 @@
 identity:
   name: edit_image
-  author: takumi
+  author: kuroneko4423
   label:
     en_US: Edit Image
     ja_JP: 画像編集
@@ -9,19 +9,52 @@ identity:
 description:
   human:
     en_US: >
-      Edit an existing image using natural language instructions with Nano Banana Pro.
-      Supports style changes, object addition/removal, color adjustments, text overlay,
-      and more.
+      Edit an existing image using natural language instructions with
+      Nano Banana Pro or Nano Banana 2 (Flash). Supports style changes,
+      object addition/removal, color adjustments, text overlay, and more.
     ja_JP: >
-      Nano Banana Proを使用して、自然言語の指示で既存の画像を編集します。
-      スタイル変更、オブジェクトの追加・削除、色調調整、テキストオーバーレイ
-      などをサポートします。
+      Nano Banana ProまたはNano Banana 2（Flash）を使用して、自然言語の指示で
+      既存の画像を編集します。スタイル変更、オブジェクトの追加・削除、色調調整、
+      テキストオーバーレイなどをサポートします。
   llm: >
-    Edit an existing image using text instructions. Provide the image and describe
-    what changes to make. Supports: style transfer, object addition/removal,
-    color grading, text overlay, background changes, inpainting, and more.
+    Edit an existing image using text instructions. Select Nano Banana Pro
+    or Nano Banana 2 (Flash). Provide the image and describe what changes
+    to make. Supports: style transfer, object addition/removal, color grading,
+    text overlay, background changes, inpainting, and more.
 
 parameters:
+  - name: model
+    type: select
+    required: false
+    default: "gemini-3-pro-image-preview"
+    label:
+      en_US: Model
+      ja_JP: モデル
+      zh_Hans: 模型
+    human_description:
+      en_US: >
+        Select the model to use. Nano Banana Pro is best for high-fidelity
+        editing. Nano Banana 2 (Flash) is faster and cheaper, with support
+        for additional aspect ratios and resolutions.
+      ja_JP: >
+        使用するモデルを選択します。Nano Banana Proは高精度な編集に
+        最適です。Nano Banana 2（Flash）はより高速で低コスト、追加の
+        アスペクト比と解像度をサポートします。
+    llm_description: >
+      The model to use for image editing.
+      "gemini-3-pro-image-preview" (Nano Banana Pro) for high-fidelity editing.
+      "gemini-3.1-flash-image-preview" (Nano Banana 2) for faster and cheaper editing.
+    options:
+      - value: "gemini-3-pro-image-preview"
+        label:
+          en_US: "Nano Banana Pro (Gemini 3 Pro)"
+          ja_JP: "Nano Banana Pro（Gemini 3 Pro）"
+      - value: "gemini-3.1-flash-image-preview"
+        label:
+          en_US: "Nano Banana 2 (Gemini 3.1 Flash)"
+          ja_JP: "Nano Banana 2（Gemini 3.1 Flash）"
+    form: form
+
   - name: prompt
     type: string
     required: true
@@ -105,6 +138,42 @@ parameters:
         label:
           en_US: "3:4 (Portrait Standard)"
           ja_JP: "3:4（縦長標準）"
+      - value: "2:3"
+        label:
+          en_US: "2:3 (Portrait - Flash only)"
+          ja_JP: "2:3（縦長 - Flash専用）"
+      - value: "3:2"
+        label:
+          en_US: "3:2 (Landscape - Flash only)"
+          ja_JP: "3:2（横長 - Flash専用）"
+      - value: "4:5"
+        label:
+          en_US: "4:5 (Portrait Tall - Flash only)"
+          ja_JP: "4:5（縦長トール - Flash専用）"
+      - value: "5:4"
+        label:
+          en_US: "5:4 (Landscape Wide - Flash only)"
+          ja_JP: "5:4（横長ワイド - Flash専用）"
+      - value: "1:4"
+        label:
+          en_US: "1:4 (Ultra Tall - Flash only)"
+          ja_JP: "1:4（超縦長 - Flash専用）"
+      - value: "4:1"
+        label:
+          en_US: "4:1 (Ultra Wide - Flash only)"
+          ja_JP: "4:1（超横長 - Flash専用）"
+      - value: "1:8"
+        label:
+          en_US: "1:8 (Extreme Tall - Flash only)"
+          ja_JP: "1:8（極端縦長 - Flash専用）"
+      - value: "8:1"
+        label:
+          en_US: "8:1 (Extreme Wide - Flash only)"
+          ja_JP: "8:1（極端横長 - Flash専用）"
+      - value: "21:9"
+        label:
+          en_US: "21:9 (Cinematic - Flash only)"
+          ja_JP: "21:9（シネマティック - Flash専用）"
     form: form
 
   - name: resolution
@@ -122,6 +191,10 @@ parameters:
         label:
           en_US: "Auto"
           ja_JP: "自動"
+      - value: "0.5K"
+        label:
+          en_US: "0.5K (512px - Flash only)"
+          ja_JP: "0.5K（512px - Flash専用）"
       - value: "1K"
         label:
           en_US: "1K (1024px)"

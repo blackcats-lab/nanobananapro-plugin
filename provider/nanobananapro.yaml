@@ -1,14 +1,14 @@
 identity:
-  author: takumi
+  author: kuroneko4423
   name: nanobananapro
   label:
     en_US: Nano Banana Pro
     ja_JP: Nano Banana Pro
     zh_Hans: Nano Banana Pro
   description:
-    en_US: Generate and edit images using Google's Nano Banana Pro (Gemini 3 Pro Image) model.
-    ja_JP: GoogleのNano Banana Pro（Gemini 3 Pro Image）モデルを使用して画像を生成・編集します。
-    zh_Hans: 使用Google的Nano Banana Pro（Gemini 3 Pro Image）模型生成和编辑图像。
+    en_US: Generate and edit images using Nano Banana Pro (Gemini 3 Pro Image) or Nano Banana 2 (Gemini 3.1 Flash Image).
+    ja_JP: Nano Banana Pro（Gemini 3 Pro Image）またはNano Banana 2（Gemini 3.1 Flash Image）を使用して画像を生成・編集します。
+    zh_Hans: 使用Nano Banana Pro（Gemini 3 Pro Image）或Nano Banana 2（Gemini 3.1 Flash Image）模型生成和编辑图像。
   icon: icon.svg
   tags:
     - image

@@ -10,16 +10,17 @@ from dify_plugin.entities.tool import ToolInvokeMessage
 
 
 GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta"
-MODEL_ID = "gemini-3-pro-image-preview"
 
 
 class EditImageTool(Tool):
     """
     Edit an existing image using natural language instructions
-    with Nano Banana Pro (Gemini 3 Pro Image).
+    with Nano Banana Pro (Gemini 3 Pro Image) or
+    Nano Banana 2 (Gemini 3.1 Flash Image).
 
-    Sends the input image along with text instructions to the Gemini API
-    generateContent endpoint with responseModalities set to include IMAGE.
+    Sends the input image along with text instructions to the
+    Gemini API generateContent endpoint with responseModalities
+    set to include IMAGE.
     """
 
     def _invoke(
@@ -27,6 +28,9 @@ class EditImageTool(Tool):
     ) -> Generator[ToolInvokeMessage]:
         # --- Extract parameters ---
         prompt = tool_parameters["prompt"]
+        model_id = tool_parameters.get(
+            "model", "gemini-3-pro-image-preview"
+        )
         image_file = tool_parameters.get("image")
         aspect_ratio = tool_parameters.get("aspect_ratio", "auto")
         resolution = tool_parameters.get("resolution", "auto")
@@ -101,7 +105,10 @@ class EditImageTool(Tool):
 
         # --- Call Gemini API ---
         try:
-            url = f"{GEMINI_API_BASE}/models/{MODEL_ID}:generateContent"
+            url = (
+                f"{GEMINI_API_BASE}/models/"
+                f"{model_id}:generateContent"
+            )
             response = requests.post(
                 url,
                 params={"key": api_key},

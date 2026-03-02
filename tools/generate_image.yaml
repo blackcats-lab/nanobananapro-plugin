@@ -1,6 +1,6 @@
 identity:
   name: generate_image
-  author: takumi
+  author: kuroneko4423
   label:
     en_US: Generate Image
     ja_JP: 画像生成
@@ -10,20 +10,56 @@ description:
   human:
     en_US: >
       Generate high-quality images from text prompts using Nano Banana Pro
-      (Gemini 3 Pro Image). Supports up to 4K resolution with advanced text
-      rendering, multiple aspect ratios, and thinking mode for complex compositions.
+      (Gemini 3 Pro Image) or Nano Banana 2 (Gemini 3.1 Flash Image).
+      Supports up to 4K resolution with advanced text rendering, multiple
+      aspect ratios, and thinking mode for complex compositions.
     ja_JP: >
-      Nano Banana Pro（Gemini 3 Pro Image）を使用して、テキストプロンプトから
-      高品質な画像を生成します。最大4K解像度、高精度なテキストレンダリング、
-      複数のアスペクト比、複雑な構図のための思考モードをサポートします。
+      Nano Banana Pro（Gemini 3 Pro Image）またはNano Banana 2（Gemini 3.1 Flash Image）
+      を使用して、テキストプロンプトから高品質な画像を生成します。最大4K解像度、
+      高精度なテキストレンダリング、複数のアスペクト比、複雑な構図のための思考モードを
+      サポートします。
   llm: >
-    Generate images from text descriptions using Nano Banana Pro (Gemini 3 Pro Image).
+    Generate images from text descriptions using Nano Banana Pro (Gemini 3 Pro Image)
+    or Nano Banana 2 (Gemini 3.1 Flash Image).
     Best for: high-fidelity images, infographics, posters with text, product mockups,
     diagrams, illustrations, and any visual content requiring accurate text rendering.
     Supports aspect ratios like 1:1, 16:9, 9:16, 4:3, 3:4.
-    Supports resolutions: 1K, 2K, 4K.
+    Flash model additionally supports: 2:3, 3:2, 4:5, 5:4, 1:4, 4:1, 1:8, 8:1, 21:9.
+    Supports resolutions: 0.5K (Flash only), 1K, 2K, 4K.
 
 parameters:
+  - name: model
+    type: select
+    required: false
+    default: "gemini-3-pro-image-preview"
+    label:
+      en_US: Model
+      ja_JP: モデル
+      zh_Hans: 模型
+    human_description:
+      en_US: >
+        Select the model to use. Nano Banana Pro is best for high-fidelity
+        images with accurate text rendering. Nano Banana 2 (Flash) is faster
+        and cheaper, with support for additional aspect ratios and resolutions.
+      ja_JP: >
+        使用するモデルを選択します。Nano Banana Proは高精度なテキストレンダリングに
+        最適です。Nano Banana 2（Flash）はより高速で低コスト、追加のアスペクト比と
+        解像度をサポートします。
+    llm_description: >
+      The model to use for image generation.
+      "gemini-3-pro-image-preview" (Nano Banana Pro) for high-fidelity images.
+      "gemini-3.1-flash-image-preview" (Nano Banana 2) for faster and cheaper generation.
+    options:
+      - value: "gemini-3-pro-image-preview"
+        label:
+          en_US: "Nano Banana Pro (Gemini 3 Pro)"
+          ja_JP: "Nano Banana Pro（Gemini 3 Pro）"
+      - value: "gemini-3.1-flash-image-preview"
+        label:
+          en_US: "Nano Banana 2 (Gemini 3.1 Flash)"
+          ja_JP: "Nano Banana 2（Gemini 3.1 Flash）"
+    form: form
+
   - name: prompt
     type: string
     required: true
@@ -97,6 +133,42 @@ parameters:
         label:
           en_US: "3:4 (Portrait Standard)"
           ja_JP: "3:4（縦長標準）"
+      - value: "2:3"
+        label:
+          en_US: "2:3 (Portrait - Flash only)"
+          ja_JP: "2:3（縦長 - Flash専用）"
+      - value: "3:2"
+        label:
+          en_US: "3:2 (Landscape - Flash only)"
+          ja_JP: "3:2（横長 - Flash専用）"
+      - value: "4:5"
+        label:
+          en_US: "4:5 (Portrait Tall - Flash only)"
+          ja_JP: "4:5（縦長トール - Flash専用）"
+      - value: "5:4"
+        label:
+          en_US: "5:4 (Landscape Wide - Flash only)"
+          ja_JP: "5:4（横長ワイド - Flash専用）"
+      - value: "1:4"
+        label:
+          en_US: "1:4 (Ultra Tall - Flash only)"
+          ja_JP: "1:4（超縦長 - Flash専用）"
+      - value: "4:1"
+        label:
+          en_US: "4:1 (Ultra Wide - Flash only)"
+          ja_JP: "4:1（超横長 - Flash専用）"
+      - value: "1:8"
+        label:
+          en_US: "1:8 (Extreme Tall - Flash only)"
+          ja_JP: "1:8（極端縦長 - Flash専用）"
+      - value: "8:1"
+        label:
+          en_US: "8:1 (Extreme Wide - Flash only)"
+          ja_JP: "8:1（極端横長 - Flash専用）"
+      - value: "21:9"
+        label:
+          en_US: "21:9 (Cinematic - Flash only)"
+          ja_JP: "21:9（シネマティック - Flash専用）"
     form: form
 
   - name: resolution
@@ -119,6 +191,10 @@ parameters:
         label:
           en_US: "Auto"
           ja_JP: "自動"
+      - value: "0.5K"
+        label:
+          en_US: "0.5K (512px - Flash only)"
+          ja_JP: "0.5K（512px - Flash専用）"
       - value: "1K"
         label:
           en_US: "1K (1024px)"
