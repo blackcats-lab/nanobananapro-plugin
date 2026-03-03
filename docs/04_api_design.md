@@ -149,6 +149,12 @@ GET https://generativelanguage.googleapis.com/v1beta/models?key=AIzaSy...
             "mimeType": "image/png",
             "data": "iVBORw0KGgoAAAANSUhEUgAA..."
           }
+        },
+        {
+          "inlineData": {
+            "mimeType": "image/jpeg",
+            "data": "/9j/4AAQSkZJRgABAQ..."
+          }
         }
       ]
     }
@@ -166,14 +172,16 @@ GET https://generativelanguage.googleapis.com/v1beta/models?key=AIzaSy...
 > **注記**: 画像編集時のリクエストには `temperature` フィールドを含まない。
 >
 > **注記**: `imageConfig` は `aspect_ratio` および `resolution` が `"auto"` でない場合にのみ含まれる（画像生成と同様）。
+>
+> **注記**: `parts` 配列には複数の `inlineData` を含めることができる（最大 14 枚）。上記の例は 2 枚の画像を含むケースを示している。
 
 ### 5.4 画像生成と画像編集のリクエスト差分
 
 | フィールド | 画像生成 | 画像編集 |
 |-----------|---------|---------|
-| `contents[0].parts` | `[{text}]` | `[{text}, {inlineData}]` |
+| `contents[0].parts` | `[{text}]` | `[{text}, {inlineData}, ...]`（1〜14 枚の画像） |
 | `generationConfig.temperature` | あり（0.0〜2.0） | なし |
-| `inlineData` | なし | 入力画像の Base64 エンコードデータ |
+| `inlineData` | なし | 入力画像の Base64 エンコードデータ（複数可） |
 
 ### 5.5 レスポンス（正常時 - 画像あり）
 

@@ -73,18 +73,22 @@ parameters:
     form: llm
 
   - name: image
-    type: file
+    type: files
     required: true
     label:
-      en_US: Input Image
+      en_US: Input Image(s)
       ja_JP: 入力画像
       zh_Hans: 输入图像
     human_description:
-      en_US: The image to edit. Supported formats are JPEG, PNG, WebP, HEIC, HEIF.
-      ja_JP: 編集する画像。JPEG、PNG、WebP、HEIC、HEIF形式をサポートします。
+      en_US: >
+        The image(s) to edit. You can provide up to 14 images.
+        Supported formats are JPEG, PNG, WebP, HEIC, HEIF.
+      ja_JP: >
+        編集する画像。最大14枚まで指定できます。
+        JPEG、PNG、WebP、HEIC、HEIF形式をサポートします。
     llm_description: >
-      The source image to be edited. Upload or provide the image file that
-      you want to modify based on the edit instructions.
+      The source image(s) to be edited. Upload or provide one or more image files
+      (up to 14) that you want to modify based on the edit instructions.
     form: llm
 
   - name: system_prompt

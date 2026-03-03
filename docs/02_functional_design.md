@@ -232,7 +232,7 @@ GET /v1beta/models?key={api_key}
 
 ### 5.1 機能概要
 
-既存の画像に対して、自然言語の指示に基づいた編集を行う。入力画像と編集指示テキストを Gemini API に送信し、編集済み画像を取得する。
+既存の画像に対して、自然言語の指示に基づいた編集を行う。入力画像（最大 14 枚）と編集指示テキストを Gemini API に送信し、編集済み画像を取得する。
 
 対応する編集操作の例：
 - スタイル変更（画風変換）
@@ -248,7 +248,7 @@ GET /v1beta/models?key={api_key}
 |-------------|-----|------|-----------|---------|------|
 | `model` | select | 任意 | `"gemini-3-pro-image-preview"` | form | 使用するモデルの選択 |
 | `prompt` | string | 必須 | - | llm | 編集指示テキスト |
-| `image` | file | 必須 | - | llm | 編集対象の入力画像 |
+| `image` | files | 必須 | - | llm | 編集対象の入力画像（1〜14 枚） |
 | `system_prompt` | string | 任意 | `""` | form | モデル動作を制御するシステム指示 |
 | `aspect_ratio` | select | 任意 | `"auto"` | form | 出力画像のアスペクト比 |
 | `resolution` | select | 任意 | `"auto"` | form | 出力画像の解像度 |
@@ -272,11 +272,11 @@ GET /v1beta/models?key={api_key}
   │
   ▼
 1. パラメータ抽出
-   model, prompt, image_file, aspect_ratio, resolution, system_prompt
+   model, prompt, image_files, aspect_ratio, resolution, system_prompt
   │
   ▼
 2. 入力画像の検証
-   image_file が空？ ──Yes──> yield "Error: An input image is required..." → 終了
+   image_files が空？ ──Yes──> yield "Error: At least one input image is required..." → 終了
   │
   No
   │
@@ -287,19 +287,15 @@ GET /v1beta/models?key={api_key}
   No
   │
   ▼
-4. 画像読み込み (_read_image)
+4. 各画像の読み込みと Base64 エンコード（ループ）
+   image_files の各画像に対して _read_image を実行:
    ├── 例外発生 → yield "Error reading image: {内容}" → 終了
-   ├── 戻り値 None → yield "Error: Failed to read the input image." → 終了
-   └── 成功 → image_data = {bytes, mime_type}
+   ├── 戻り値 None → yield "Error: Failed to read an input image." → 終了
+   └── 成功 → Base64 エンコードして image_parts に追加
   │
   ▼
-5. Base64 エンコード
-   image_b64 = base64.b64encode(image_data["bytes"])
-  │
-  ▼
-6. リクエストペイロード構築
-   - contents[0].parts[0].text = prompt
-   - contents[0].parts[1].inlineData = {mimeType, data: image_b64}
+5. リクエストペイロード構築
+   - contents[0].parts = [{text: prompt}, {inlineData: 画像1}, {inlineData: 画像2}, ...]
    - generationConfig.responseModalities = ["TEXT", "IMAGE"]
    - aspect_ratio が "auto" でなければ imageConfig.aspectRatio を設定
    - resolution が "auto" でなければ imageConfig.imageSize を設定
@@ -307,13 +303,13 @@ GET /v1beta/models?key={api_key}
    - system_prompt が空でなければ systemInstruction を追加
   │
   ▼
-7. POST /v1beta/models/{model_id}:generateContent
+6. POST /v1beta/models/{model_id}:generateContent
    (model_id は model パラメータから取得。デフォルト: gemini-3-pro-image-preview)
    (タイムアウト: 120 秒)
    ※ 画像生成機能と同様のエラーハンドリング
   │
   ▼
-8. レスポンスパース
+7. レスポンスパース
    ※ 画像生成機能と同様の処理
   │
   ▼
@@ -330,8 +326,8 @@ GET /v1beta/models?key={api_key}
 
 | エラー条件 | ユーザーメッセージ |
 |-----------|------------------|
-| 入力画像未指定 | `"Error: An input image is required for editing."` |
-| 画像読み込み失敗（_read_image が None を返却） | `"Error: Failed to read the input image."` |
+| 入力画像未指定 | `"Error: At least one input image is required for editing."` |
+| 画像読み込み失敗（_read_image が None を返却） | `"Error: Failed to read an input image."` |
 | 画像読み込みエラー（例外発生） | `"Error reading image: {例外メッセージ}"` |
 | 安全性ブロック | `"Image editing was blocked. Reason: {blockReason}. Please modify your instructions and try again."` |
 | 候補なし（ブロック理由なし） | `"No edited image was generated. Please try different instructions."` |

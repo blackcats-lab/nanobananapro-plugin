@@ -38,7 +38,7 @@ dify_plugin.Tool
 |---------|-----------|-------------|------|------|
 | `NanoBananaProProvider` | `ToolProvider` | `provider/nanobananapro.py` | 49 行 | Gemini API キーの検証 |
 | `GenerateImageTool` | `Tool` | `tools/generate_image.py` | 169 行 | テキストからの画像生成 |
-| `EditImageTool` | `Tool` | `tools/edit_image.py` | 234 行 | 既存画像の自然言語編集 |
+| `EditImageTool` | `Tool` | `tools/edit_image.py` | 235 行 | 既存画像の自然言語編集（複数画像対応） |
 
 ---
 
@@ -219,15 +219,27 @@ GenerateImageTool と同一（`GEMINI_API_BASE` のみ）。`MODEL_ID` 定数は
 | 差分項目 | GenerateImageTool | EditImageTool |
 |---------|-------------------|---------------|
 | `temperature` パラメータ | あり | なし |
-| `image` パラメータ | なし | あり（必須） |
-| 画像入力の検証 | なし | `image_file` の空チェック |
-| 画像読み込み処理 | なし | `_read_image()` + Base64 エンコード |
-| ペイロードの parts | `[{text}]` | `[{text}, {inlineData}]` |
+| `image` パラメータ | なし | あり（必須、`type: files`、1〜14 枚） |
+| 画像入力の検証 | なし | `image_files` の空チェック |
+| 画像読み込み処理 | なし | 各画像に `_read_image()` + Base64 エンコード |
+| ペイロードの parts | `[{text}]` | `[{text}, {inlineData}, ...]`（複数画像） |
 | generationConfig | `temperature` を含む | `temperature` を含まない |
 
 **画像編集時のペイロード構造**:
 
 ```python
+# 複数画像の読み込みと Base64 エンコード
+image_parts = []
+for image_file in image_files:
+    image_data = self._read_image(image_file)
+    image_b64 = base64.b64encode(image_data["bytes"]).decode("utf-8")
+    image_parts.append({
+        "inlineData": {
+            "mimeType": image_data["mime_type"],
+            "data": image_b64,
+        }
+    })
+
 generation_config = {
     "responseModalities": ["TEXT", "IMAGE"],
 }
@@ -242,10 +254,7 @@ if image_config:
 
 payload = {
     "contents": [{
-        "parts": [
-            {"text": prompt},
-            {"inlineData": {"mimeType": mime_type, "data": image_b64}},
-        ]
+        "parts": [{"text": prompt}] + image_parts
     }],
     "generationConfig": generation_config,
 }
@@ -253,6 +262,8 @@ payload = {
 if system_prompt:
     payload["systemInstruction"] = {"parts": [{"text": system_prompt}]}
 ```
+
+> **注記**: `image` パラメータは `type: files` であり、1〜14 枚の画像を受け付ける。各画像は個別に `_read_image()` で読み込み、Base64 エンコードして `inlineData` として `parts` 配列に追加する。
 
 #### `_read_image(self, image_file: Any) -> dict | None`
 
@@ -399,7 +410,7 @@ if __name__ == "__main__":
 
 | 差分 | 内容 |
 |------|------|
-| `parameters.image` | `type: file` の入力パラメータ（画像生成にはない） |
+| `parameters.image` | `type: files` の入力パラメータ（1〜14 枚、画像生成にはない） |
 | `parameters.temperature` | 画像編集には存在しない |
 | `description.llm` | 編集操作に特化した LLM 向け説明 |
 

@@ -134,13 +134,13 @@ tests/
 
 | テスト ID | テスト名 | 前提条件 | 入力 | 期待結果 |
 |----------|---------|---------|------|---------|
-| TC-EDIT-001 | 正常編集 | モック: 200 応答 | `prompt="edit", image=valid_image` | Blob メッセージ（編集済み画像） |
+| TC-EDIT-001 | 正常編集（単一画像） | モック: 200 応答 | `prompt="edit", image=[valid_image]` | Blob メッセージ（編集済み画像） |
 
 #### 入力検証
 
 | テスト ID | テスト名 | 前提条件 | 入力 | 期待結果 |
 |----------|---------|---------|------|---------|
-| TC-EDIT-002 | 画像未指定 | - | `image=None` | テキスト `"Error: An input image is required for editing."` |
+| TC-EDIT-002 | 画像未指定（空リスト） | - | `image=[]` | テキスト `"Error: At least one input image is required for editing."` |
 
 #### _read_image テスト - 画像バイト取得
 
@@ -165,7 +165,7 @@ tests/
 | テスト ID | テスト名 | 前提条件 | 入力 | 期待結果 |
 |----------|---------|---------|------|---------|
 | TC-EDIT-011 | 画像読み込みエラー（例外） | `_read_image` で例外発生 | 異常な画像オブジェクト | テキスト `"Error reading image: ..."` |
-| TC-EDIT-012 | 画像読み込み失敗（None） | `_read_image` が `None` を返却 | 未対応型の画像オブジェクト | テキスト `"Error: Failed to read the input image."` |
+| TC-EDIT-012 | 画像読み込み失敗（None） | `_read_image` が `None` を返却 | 未対応型の画像オブジェクト | テキスト `"Error: Failed to read an input image."` |
 
 #### モデル選択・auto パラメータ・Flash 専用パラメータ
 
@@ -175,6 +175,14 @@ tests/
 | TC-EDIT-014 | auto アスペクト比での編集 | モック: 200 応答 | `aspect_ratio="auto", prompt="edit", image=valid_image` | ペイロードの `imageConfig` に `aspectRatio` フィールドが含まれない |
 | TC-EDIT-015 | auto 解像度での編集 | モック: 200 応答 | `resolution="auto", prompt="edit", image=valid_image` | ペイロードの `imageConfig` に `imageSize` フィールドが含まれない |
 | TC-EDIT-016 | Flash 専用アスペクト比での編集 | モック: 200 応答 | `model="gemini-3.1-flash-image-preview", aspect_ratio="21:9", prompt="edit", image=valid_image` | ペイロードの `imageConfig.aspectRatio` が `"21:9"` |
+
+#### 複数画像入力
+
+| テスト ID | テスト名 | 前提条件 | 入力 | 期待結果 |
+|----------|---------|---------|------|---------|
+| TC-EDIT-017 | 複数画像での編集（2 枚） | モック: 200 応答 | `prompt="edit", image=[image1, image2]` | ペイロードの `parts` に 2 つの `inlineData` が含まれる |
+| TC-EDIT-018 | 複数画像のうち 1 枚が読み込み失敗 | `_read_image` が 2 枚目で `None` を返却 | `image=[valid_image, invalid_image]` | テキスト `"Error: Failed to read an input image."` |
+| TC-EDIT-019 | 複数画像のうち 1 枚で例外発生 | `_read_image` が 2 枚目で例外送出 | `image=[valid_image, error_image]` | テキスト `"Error reading image: ..."` |
 
 > **注記**: API エラー、タイムアウト、接続エラー、安全性ブロックのテストは TC-GEN と同一パターンのため省略。実装時は画像生成テストと同様のケースを追加する。
 

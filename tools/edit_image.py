@@ -14,12 +14,12 @@ GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta"
 
 class EditImageTool(Tool):
     """
-    Edit an existing image using natural language instructions
+    Edit existing image(s) using natural language instructions
     with Nano Banana Pro (Gemini 3 Pro Image) or
     Nano Banana 2 (Gemini 3.1 Flash Image).
 
-    Sends the input image along with text instructions to the
-    Gemini API generateContent endpoint with responseModalities
+    Sends the input image(s) (up to 14) along with text instructions
+    to the Gemini API generateContent endpoint with responseModalities
     set to include IMAGE.
     """
 
@@ -31,15 +31,15 @@ class EditImageTool(Tool):
         model_id = tool_parameters.get(
             "model", "gemini-3-pro-image-preview"
         )
-        image_file = tool_parameters.get("image")
+        image_files = tool_parameters.get("image", [])
         aspect_ratio = tool_parameters.get("aspect_ratio", "auto")
         resolution = tool_parameters.get("resolution", "auto")
         system_prompt = tool_parameters.get("system_prompt", "")
 
         # --- Validate image input ---
-        if not image_file:
+        if not image_files:
             yield self.create_text_message(
-                "Error: An input image is required for editing."
+                "Error: At least one input image is required for editing."
             )
             return
 
@@ -51,22 +51,31 @@ class EditImageTool(Tool):
             )
             return
 
-        # --- Read and encode the input image ---
-        try:
-            image_data = self._read_image(image_file)
-            if not image_data:
+        # --- Read and encode the input image(s) ---
+        image_parts: list[dict] = []
+        for image_file in image_files:
+            try:
+                image_data = self._read_image(image_file)
+                if not image_data:
+                    yield self.create_text_message(
+                        "Error: Failed to read an input image."
+                    )
+                    return
+
+                image_b64 = base64.b64encode(
+                    image_data["bytes"]
+                ).decode("utf-8")
+                image_parts.append({
+                    "inlineData": {
+                        "mimeType": image_data["mime_type"],
+                        "data": image_b64,
+                    }
+                })
+            except Exception as e:
                 yield self.create_text_message(
-                    "Error: Failed to read the input image."
+                    f"Error reading image: {str(e)}"
                 )
                 return
-
-            image_b64 = base64.b64encode(image_data["bytes"]).decode("utf-8")
-            mime_type = image_data["mime_type"]
-        except Exception as e:
-            yield self.create_text_message(
-                f"Error reading image: {str(e)}"
-            )
-            return
 
         # --- Build request payload ---
         generation_config: dict = {
@@ -84,15 +93,7 @@ class EditImageTool(Tool):
         payload = {
             "contents": [
                 {
-                    "parts": [
-                        {"text": prompt},
-                        {
-                            "inlineData": {
-                                "mimeType": mime_type,
-                                "data": image_b64,
-                            }
-                        },
-                    ]
+                    "parts": [{"text": prompt}] + image_parts
                 }
             ],
             "generationConfig": generation_config,
